@@ -5,6 +5,9 @@ import { ProductCard } from '@/components/ProductCard';
 import { getContract } from '@/lib/web3';
 import ProductManagerContract from '../build/contracts/ProductManager.json';
 import { motion } from 'framer-motion';
+import { SearchBar } from '@/components/SearchBar';
+
+
 interface Product {
   id: number;
   name: string;
@@ -21,12 +24,15 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const categories = ['all', 'electronics', 'clothing', 'books', 'home'];
 
   useEffect(() => {
     loadProducts();
   }, []);
+
+
 
   const loadProducts = async () => {
     try {
@@ -59,7 +65,8 @@ export default function Home() {
   };
 
   const filteredProducts = products.filter(product => 
-    selectedCategory === 'all' || product.category === selectedCategory
+    (selectedCategory === 'all' || product.category === selectedCategory) &&
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -80,31 +87,34 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-    <div className="container mx-auto px-4 py-8">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
-        <h1 className="text-4xl font-bold mb-4">Discover Products</h1>
-        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
-                selectedCategory === category
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              }`}
-            >
-              {category.charAt(0).toUpperCase() + category.slice(1)}
-            </button>
-          ))}
-        </div>
-      </motion.div>
+      <div className="container mx-auto px-4 py-8">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-4xl font-bold mb-4">Discover Products</h1>
+          <div className="mb-4">
+            <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          </div> 
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+                  selectedCategory === category
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                }`}
+              >
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </button>
+            ))}
+          </div>
+        </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product, index) => (
             <ProductCard 
               key={product.id} 

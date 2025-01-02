@@ -1,12 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/lib/store/CartContext';
 import { useToast } from '@/hooks/use-toast';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Eye, ShoppingCart, Heart } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface Product {
   id: number;
@@ -23,11 +26,13 @@ interface Product {
 interface ProductCardProps {
   product: Product;
   priority?: boolean;
+  isHovered?: boolean;
 }
 
-export function ProductCard({ product, priority = false }: ProductCardProps) {
+export function ProductCard({ product, priority = false, isHovered = false }: ProductCardProps) {
   const { dispatch } = useCart();
   const { toast } = useToast();
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const addToCart = () => {
     dispatch({
@@ -47,13 +52,21 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
     });
   };
 
+  const toggleFavorite = () => {
+    setIsFavorite(!isFavorite);
+    toast({
+      title: isFavorite ? "Removed from favorites" : "Added to favorites",
+      description: `${product.name} has been ${isFavorite ? 'removed from' : 'added to'} your favorites.`
+    });
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
         <CardContent className="p-0">
           <div className="relative aspect-square">
             <Image
@@ -61,10 +74,44 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               alt={product.name}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="object-cover transition-transform hover:scale-105"
+              className="object-cover transition-transform duration-300 hover:scale-105"
               priority={priority}
               loading={priority ? 'eager' : 'lazy'}
             />
+            <AnimatePresence>
+              {isHovered && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center gap-2"
+                >
+                  <Button variant="secondary" size="sm" asChild>
+                    <Link href={`/product/${product.id}`}>
+                      <Eye className="mr-2 h-4 w-4" />
+                      View
+                    </Link>
+                  </Button>
+                  <Button size="sm" onClick={addToCart} disabled={product.stock === 0}>
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-2 bg-white bg-opacity-50 hover:bg-opacity-100 transition-colors"
+              onClick={toggleFavorite}
+            >
+              <Heart className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+            </Button>
+            {product.stock < 5 && product.stock > 0 && (
+              <Badge variant="destructive" className="absolute top-2 left-2">
+                Low Stock
+              </Badge>
+            )}
           </div>
           <div className="p-4">
             <h3 className="font-semibold text-lg mb-2 line-clamp-1">{product.name}</h3>
