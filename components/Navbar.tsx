@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, User, Store, Menu, X } from 'lucide-react';
+import { ShoppingCart, User, Store, Menu, X, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WalletModal } from '@/components/WalletModal';
 import { connectWallet } from '@/lib/web3';
 import { useCart } from '@/lib/store/CartContext';
+import { useFavorites } from '@/lib/store/useFavorites';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DropdownMenu,
@@ -17,13 +18,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-
 export function Navbar() {
   const [account, setAccount] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { state } = useCart();
+  const { state: cartState } = useCart();
+  const { state: favoritesState } = useFavorites();
 
   useEffect(() => {
     setIsClient(true);
@@ -60,8 +61,6 @@ export function Navbar() {
               <span className="font-bold text-xl">DApp Store</span>
             </Link>
 
-            
-
             <div className="flex items-center space-x-4">
               {account ? (
                 <>
@@ -69,14 +68,31 @@ export function Navbar() {
                     <Button variant="ghost" size="icon" className="relative">
                       <ShoppingCart className="h-5 w-5" />
                       <AnimatePresence>
-                        {state.items.length > 0 && (
+                        {cartState.items.length > 0 && (
                           <motion.span
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             exit={{ scale: 0 }}
                             className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center"
                           >
-                            {state.items.length}
+                            {cartState.items.length}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </Button>
+                  </Link>
+                  <Link href="/favorites">
+                    <Button variant="ghost" size="icon" className="relative">
+                      <Heart className="h-5 w-5" />
+                      <AnimatePresence>
+                        {favoritesState.items.length > 0 && (
+                          <motion.span
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0 }}
+                            className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center"
+                          >
+                            {favoritesState.items.length}
                           </motion.span>
                         )}
                       </AnimatePresence>
@@ -95,7 +111,7 @@ export function Navbar() {
                         <Link href="/profile">Profile</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem>
-                        <Link href="/orders">Orders</Link>
+                        <Link href="/profile/orders">Orders</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={handleDisconnect}>
                         Disconnect Wallet
@@ -132,7 +148,7 @@ export function Navbar() {
             exit={{ opacity: 0, y: -20 }}
             className="md:hidden bg-background border-b"
           >
-          
+            {/* Mobile menu content */}
           </motion.div>
         )}
       </AnimatePresence>
@@ -145,4 +161,3 @@ export function Navbar() {
     </>
   );
 }
-

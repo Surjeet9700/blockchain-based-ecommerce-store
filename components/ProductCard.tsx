@@ -1,15 +1,13 @@
-'use client';
-
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/lib/store/CartContext';
+import { useFavorites } from '@/lib/store/useFavorites';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, ShoppingCart, Heart } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 
 interface Product {
   id: number;
@@ -31,8 +29,9 @@ interface ProductCardProps {
 
 export function ProductCard({ product, priority = false, isHovered = false }: ProductCardProps) {
   const { dispatch } = useCart();
+  const { state: favoritesState, dispatch: favoritesDispatch } = useFavorites();
   const { toast } = useToast();
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(favoritesState.items.some(item => item.id === product.id));
 
   const addToCart = () => {
     dispatch({
@@ -53,11 +52,28 @@ export function ProductCard({ product, priority = false, isHovered = false }: Pr
   };
 
   const toggleFavorite = () => {
+    if (isFavorite) {
+      favoritesDispatch({ type: 'REMOVE_FAVORITE', payload: product.id });
+      toast({
+        title: "Removed from favorites",
+        description: `${product.name} has been removed from your favorites.`
+      });
+    } else {
+      favoritesDispatch({
+        type: 'ADD_FAVORITE',
+        payload: {
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image
+        }
+      });
+      toast({
+        title: "Added to favorites",
+        description: `${product.name} has been added to your favorites.`
+      });
+    }
     setIsFavorite(!isFavorite);
-    toast({
-      title: isFavorite ? "Removed from favorites" : "Added to favorites",
-      description: `${product.name} has been ${isFavorite ? 'removed from' : 'added to'} your favorites.`
-    });
   };
 
   return (
@@ -107,11 +123,6 @@ export function ProductCard({ product, priority = false, isHovered = false }: Pr
             >
               <Heart className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
             </Button>
-            {product.stock < 5 && product.stock > 0 && (
-              <Badge variant="destructive" className="absolute top-2 left-2">
-                Low Stock
-              </Badge>
-            )}
           </div>
           <div className="p-4">
             <h3 className="font-semibold text-lg mb-2 line-clamp-1">{product.name}</h3>
