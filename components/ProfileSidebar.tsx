@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import OrdersPage from "@/app/profile/orders/page";
 import { User, ShoppingBag, CreditCard, Settings, HelpCircle } from 'lucide-react';
 import { ProfileTab } from './ProfileTab';
 import { WalletTab } from './WalletTab';
@@ -17,6 +18,8 @@ export function ProfileSidebar({ account, profile, updateProfile, registerUser }
         return <WalletTab account={account} />;
       case 'payment':
         return <PaymentTab />;
+      case 'order history':
+        return <OrdersPage />;
       case 'settings':
         return <SettingsTab />;
       case 'more':
@@ -33,6 +36,7 @@ export function ProfileSidebar({ account, profile, updateProfile, registerUser }
           { name: 'Profile', value: 'profile', icon: User },
           { name: 'Wallet', value: 'wallet', icon: ShoppingBag },
           { name: 'Payment', value: 'payment', icon: CreditCard },
+          { name: 'Order History', value: 'order history', icon: ShoppingBag },
           { name: 'Settings', value: 'settings', icon: Settings },
           { name: 'More', value: 'more', icon: HelpCircle },
         ].map((item) => (
