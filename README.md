@@ -146,10 +146,5 @@ The project is structured into three layers:
 
 
 
-## License
-
-This project is licensed under the [MIT License](./LICENSE).
-
----
 
 
